@@ -172,7 +172,7 @@ advanceRow model =
             model.cursor
 
         boardSize =
-            Array.length model.board - 1
+            Array.length model.board
     in
     if row < boardSize then
         ( row + 1, 0 )
@@ -411,8 +411,6 @@ showGameResult model =
             model.cursor
     in
     if model.hasWon then
-        -- TODO: Fix bug where cursor doesn't properly
-        -- advance for a win on the sixth move
         "Got it in " ++ String.fromInt numberOfGuesses ++ "!"
 
     else
