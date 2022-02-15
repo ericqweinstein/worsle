@@ -5,6 +5,7 @@ import Browser
 import Browser.Events exposing (onKeyUp)
 import Html exposing (..)
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Json.Decode as Decode
 import Random
 import Words
@@ -47,9 +48,19 @@ type alias Cursor =
     ( Int, Int )
 
 
+type Key
+    = Clicked String
+    | Unclicked String
+
+
+type alias Keyboard =
+    List Key
+
+
 type alias Model =
     { word : String
     , board : Board
+    , keyboard : Keyboard
     , cursor : Cursor
     , hasWon : Bool
     }
@@ -65,6 +76,44 @@ createBoard =
             Array.fromList <| List.repeat 5 blankCell
     in
     Array.fromList <| List.repeat 6 blankRow
+
+
+createKeyboard : Keyboard
+createKeyboard =
+    let
+        createKey =
+            \letter -> Unclicked letter
+    in
+    List.map createKey
+        [ "q"
+        , "w"
+        , "e"
+        , "r"
+        , "t"
+        , "y"
+        , "u"
+        , "i"
+        , "o"
+        , "p"
+        , "a"
+        , "s"
+        , "d"
+        , "f"
+        , "g"
+        , "h"
+        , "j"
+        , "k"
+        , "l"
+        , "Enter"
+        , "z"
+        , "x"
+        , "c"
+        , "v"
+        , "b"
+        , "n"
+        , "m"
+        , "Backspace"
+        ]
 
 
 defaultWord : String
@@ -93,6 +142,7 @@ initialModel : Model
 initialModel =
     { word = defaultWord
     , board = createBoard
+    , keyboard = createKeyboard
     , cursor = ( 0, 0 )
     , hasWon = False
     }
@@ -284,8 +334,10 @@ update msg model =
             , Cmd.none
             )
 
-        -- TODO: Explicitly handle loss condition
-        -- instead of just ending the game
+        -- TODO: Explicitly handle loss condition instead
+        -- of just ending the game; update to commit the
+        -- guess to the on-screen keyboard as well, greying
+        -- out any already-guessed keys
         ControlKey "Enter" ->
             ( { model
                 | board = commitGuess model
@@ -316,7 +368,7 @@ update msg model =
 -- VIEW
 
 
-toSquare : Cell -> Html a
+toSquare : Cell -> Html Msg
 toSquare cell =
     case cell of
         Uncommitted char ->
@@ -417,6 +469,54 @@ showGameResult model =
         ""
 
 
+toKeyCap : Key -> Html Msg
+toKeyCap keyPressed =
+    case keyPressed of
+        Unclicked letter ->
+            div
+                [ style "background-color" "white"
+                , style "color" "black"
+                , style "border" "2px solid #d3d6da"
+                , style "border-radius" "5%"
+                , style "display" "inline-flex"
+                , style "flex-direction" "column"
+                , style "font-family" "helvetica"
+                , style "height" "3em"
+                , style "justify-content" "center"
+                , style "margin" "0 0.1em 0.1em 0"
+                , style "text-align" "center"
+                , style "vertical-align" "top"
+                , style "width" "2em"
+                , onClick (toKey letter)
+                ]
+                [ text <| String.toUpper letter ]
+
+        Clicked letter ->
+            div
+                [ style "background-color" "black"
+                , style "color" "white"
+                , style "border" "2px solid #d3d6da"
+                , style "border-radius" "5%"
+                , style "display" "inline-flex"
+                , style "flex-direction" "column"
+                , style "font-family" "helvetica"
+                , style "height" "3em"
+                , style "justify-content" "center"
+                , style "margin" "0 0.1em 0.1em 0"
+                , style "text-align" "center"
+                , style "vertical-align" "top"
+                , style "width" "2em"
+                ]
+                [ text <| String.toUpper letter ]
+
+
+renderKeyboard : Keyboard -> List (Html Msg)
+renderKeyboard keyboard =
+    [ div []
+        (List.map toKeyCap keyboard)
+    ]
+
+
 view : Model -> Html Msg
 view model =
     div []
@@ -441,6 +541,13 @@ view model =
             , style "font-family" "helvetica"
             ]
             [ text (showGameResult model) ]
+        , div
+            [ style "text-align" "center"
+            , style "font-family" "helvetica"
+            , style "width" "24em"
+            , style "margin" "0 auto"
+            ]
+            (renderKeyboard model.keyboard)
         ]
 
 
