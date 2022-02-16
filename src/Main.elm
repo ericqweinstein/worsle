@@ -321,6 +321,55 @@ commitGuess model =
             Array.empty
 
 
+updateKey : ( Key, List String ) -> Key
+updateKey ( key, guessedLetters ) =
+    case key of
+        Clicked _ ->
+            key
+
+        Unclicked letter ->
+            if List.member letter guessedLetters then
+                Clicked letter
+
+            else
+                key
+
+
+updateKeyboard : Model -> Keyboard
+updateKeyboard model =
+    let
+        board =
+            model.board
+
+        cursor =
+            model.cursor
+
+        ( rowIndex, _ ) =
+            cursor
+
+        row =
+            Array.get rowIndex board
+
+        characters =
+            case row of
+                Just cells ->
+                    cells
+                        |> Array.toList
+                        |> List.map extractChar
+                        |> List.map String.fromChar
+
+                Nothing ->
+                    []
+
+        keyboard =
+            model.keyboard
+
+        keyboardWithLatestGuess =
+            List.map (\key -> ( key, characters )) keyboard
+    in
+    List.map updateKey keyboardWithLatestGuess
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -334,14 +383,13 @@ update msg model =
             , Cmd.none
             )
 
-        -- TODO: Explicitly handle loss condition instead
-        -- of just ending the game; update to commit the
-        -- guess to the on-screen keyboard as well, greying
-        -- out any already-guessed keys
+        -- TODO: Explicitly handle loss condition
+        -- instead of just ending the game
         ControlKey "Enter" ->
             ( { model
                 | board = commitGuess model
                 , cursor = advanceRow model
+                , keyboard = updateKeyboard model
                 , hasWon = checkIfWon model
               }
             , Cmd.none
@@ -462,6 +510,14 @@ showGameResult model =
         ( numberOfGuesses, _ ) =
             model.cursor
     in
+    -- TODO: We should probably refactor the GameState (or
+    -- whatever we call it; hopefully with a better name) to
+    -- something like `type GameState = Playing | Won | Lost`,
+    -- as well as replace this string with a modal or something
+    -- (it pushes the keyboard down when it appears)
+    --
+    -- Oh yeah, we also want to disable keyboard inputs
+    -- after winning
     if model.hasWon then
         "Got it in " ++ String.fromInt numberOfGuesses ++ "!"
 
@@ -493,7 +549,7 @@ toKeyCap keyPressed =
 
         Clicked letter ->
             div
-                [ style "background-color" "black"
+                [ style "background-color" "#787c7e"
                 , style "color" "white"
                 , style "border" "2px solid #d3d6da"
                 , style "border-radius" "5%"
