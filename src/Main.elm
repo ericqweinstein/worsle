@@ -586,6 +586,7 @@ toKeyCap keyPressed =
                 , style "text-align" "center"
                 , style "vertical-align" "top"
                 , style "width" "2em"
+                , onClick (toKey letter)
                 ]
                 [ text <| String.toUpper letter ]
 
