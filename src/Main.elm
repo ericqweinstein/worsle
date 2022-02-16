@@ -57,12 +57,19 @@ type alias Keyboard =
     List Key
 
 
+type GameState
+    = Playing
+    | Won
+    | Lost
+
+
 type alias Model =
     { word : String
     , board : Board
     , keyboard : Keyboard
     , cursor : Cursor
-    , hasWon : Bool
+    , guessCount : Int
+    , gameState : GameState
     }
 
 
@@ -144,7 +151,8 @@ initialModel =
     , board = createBoard
     , keyboard = createKeyboard
     , cursor = ( 0, 0 )
-    , hasWon = False
+    , guessCount = 0
+    , gameState = Playing
     }
 
 
@@ -176,8 +184,13 @@ toKey keyValue =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    onKeyUp keyDecoder
+subscriptions model =
+    case model.gameState of
+        Playing ->
+            onKeyUp keyDecoder
+
+        _ ->
+            Sub.none
 
 
 
@@ -231,8 +244,8 @@ advanceRow model =
         ( row, 0 )
 
 
-checkIfWon : Model -> Bool
-checkIfWon model =
+updateGameState : Model -> GameState
+updateGameState model =
     let
         board =
             model.board
@@ -245,18 +258,31 @@ checkIfWon model =
 
         word =
             model.word
-    in
-    case row of
-        Just cells ->
-            word
-                == (cells
-                        |> Array.toList
-                        |> List.map extractChar
-                        |> String.fromList
-                   )
 
-        Nothing ->
-            False
+        hasGuessesLeft =
+            model.guessCount < 5
+
+        correctGuess =
+            case row of
+                Just cells ->
+                    word
+                        == (cells
+                                |> Array.toList
+                                |> List.map extractChar
+                                |> String.fromList
+                           )
+
+                Nothing ->
+                    False
+    in
+    if correctGuess then
+        Won
+
+    else if hasGuessesLeft then
+        Playing
+
+    else
+        Lost
 
 
 updateCell : Int -> ( Cell, String ) -> Cell
@@ -383,14 +409,13 @@ update msg model =
             , Cmd.none
             )
 
-        -- TODO: Explicitly handle loss condition
-        -- instead of just ending the game
         ControlKey "Enter" ->
             ( { model
                 | board = commitGuess model
                 , cursor = advanceRow model
                 , keyboard = updateKeyboard model
-                , hasWon = checkIfWon model
+                , guessCount = model.guessCount + 1
+                , gameState = updateGameState model
               }
             , Cmd.none
             )
@@ -507,22 +532,21 @@ display board =
 showGameResult : Model -> String
 showGameResult model =
     let
-        ( numberOfGuesses, _ ) =
-            model.cursor
+        numberOfGuesses =
+            model.guessCount
     in
-    -- TODO: We should probably refactor the GameState (or
-    -- whatever we call it; hopefully with a better name) to
-    -- something like `type GameState = Playing | Won | Lost`,
-    -- as well as replace this string with a modal or something
+    -- TODO: replace this string with a modal or something
     -- (it pushes the keyboard down when it appears)
-    --
-    -- Oh yeah, we also want to disable keyboard inputs
-    -- after winning
-    if model.hasWon then
-        "Got it in " ++ String.fromInt numberOfGuesses ++ "!"
+    case model.gameState of
+        Playing ->
+            ""
 
-    else
-        ""
+        Won ->
+            "Got it in " ++ String.fromInt numberOfGuesses ++ "!"
+
+        -- TODO: Fix bug where the board disappears on a loss
+        Lost ->
+            "You lost!"
 
 
 toKeyCap : Key -> Html Msg
