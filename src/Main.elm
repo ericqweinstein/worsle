@@ -483,22 +483,15 @@ display board =
 -- number of guesses and the game state here
 
 
-showGameResult : Model -> String
-showGameResult model =
-    let
-        numberOfGuesses =
-            model.guessCount
-    in
-    -- TODO: replace this string with a modal or something
-    -- (it pushes the keyboard down when it appears)
-    case model.gameState of
+showGameResult : Int -> GameState -> String
+showGameResult numberOfGuesses gameState =
+    case gameState of
         Playing ->
             ""
 
         Won ->
             "Got it in " ++ String.fromInt numberOfGuesses ++ "!"
 
-        -- TODO: Fix bug where the board disappears on a loss
         Lost ->
             "You lost!"
 
@@ -541,7 +534,7 @@ view model =
             (display model.board)
         , p
             []
-            [ text (showGameResult model) ]
+            [ text (showGameResult model.guessCount model.gameState) ]
         , div
             [ class "keyboard" ]
             (renderKeyboard model.keyboard)
