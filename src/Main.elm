@@ -478,11 +478,6 @@ display board =
     List.map fromRow (Array.toList board)
 
 
-
--- TODO: Probably better just to pass the
--- number of guesses and the game state here
-
-
 showGameResult : Int -> GameState -> String
 showGameResult numberOfGuesses gameState =
     case gameState of
