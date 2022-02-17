@@ -65,3 +65,19 @@ h2 {
   text-align: center;
   width: 24em;
 }
+
+.modal {
+  color: #c55248;
+  display: inline-flex;
+  flex-direction: column;
+  font-size: 2em;
+  font-weight: bold;
+  height: 3em;
+  justify-content: center;
+  left: 50%;
+  position: fixed;
+  top: 30%;
+  transform: translate(-50%, -50%);
+  vertical-align: top;
+  width: 100%;
+}

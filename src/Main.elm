@@ -528,7 +528,7 @@ view model =
             [ class "game-board" ]
             (display model.board)
         , p
-            []
+            [ class "modal" ]
             [ text (showGameResult model.guessCount model.gameState) ]
         , div
             [ class "keyboard" ]
