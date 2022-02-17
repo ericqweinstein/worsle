@@ -1,0 +1,67 @@
+h1, p {
+  font-family: helvetica;
+  text-align: center;
+}
+
+h2 {
+  font-family: helvetica;
+  font-size: 1em;
+  text-align: center;
+}
+
+.board-cell {
+  border-radius: 5%;
+  border: 2px solid #d3d6da;
+  display: inline-flex;
+  flex-direction: column;
+  font-family: helvetica;
+  height: 4em;
+  justify-content: center;
+  margin: 0 0.25em 0.25em 0;
+  text-align: center;
+  vertical-align: top;
+  width: 4em;
+}
+
+.absent {
+  background-color: #787c7e;
+}
+
+.present {
+  background-color: #c9b458;
+}
+
+.correct {
+  background-color: #6aaa64;
+}
+
+.keycap {
+  border-radius: 5%;
+  border: 2px solid #d3d6da;
+  color: black;
+  display: inline-flex;
+  flex-direction: column;
+  font-family: helvetica;
+  height: 3em;
+  justify-content: center;
+  margin: 0 0.1em 0.1em 0;
+  text-align: center;
+  vertical-align: top;
+  width: 2em;
+}
+
+.clicked {
+  background-color: #787c7e;
+}
+
+.game-board {
+  margin: 0 auto;
+  width: 22.5em;
+}
+
+.keyboard {
+  font-family: helvetica;
+  margin: 0 auto;
+  text-align: center;
+  width: 24em;
+}

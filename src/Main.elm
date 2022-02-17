@@ -137,12 +137,7 @@ todaysWord idx =
         possibleWord =
             Array.get idx candidates
     in
-    case possibleWord of
-        Nothing ->
-            defaultWord
-
-        Just word ->
-            word
+    Maybe.withDefault defaultWord possibleWord
 
 
 initialModel : Model
@@ -315,10 +310,17 @@ updateCell index ( cell, word ) =
 updateRow : Row -> String -> Row
 updateRow row word =
     let
-        decoratedRow =
+        rowWithWordForComparison =
             Array.map (\cell -> ( cell, word )) row
     in
-    Array.indexedMap updateCell decoratedRow
+    Array.indexedMap updateCell rowWithWordForComparison
+
+
+
+-- TODO: Might be worth writing a row accessor,
+-- given we use this pattern in a couple places
+-- TODO: Prevent non-words from being submitted,
+-- as well as prevent incomplete submissions
 
 
 commitGuess : Model -> Board
@@ -444,77 +446,24 @@ update msg model =
 toSquare : Cell -> Html Msg
 toSquare cell =
     case cell of
+        -- TODO: Consider Elm UI
         Uncommitted char ->
-            -- TODO: Swap this out for an actual CSS
-            -- file (or maybe just Elm UI instead?)
-            div
-                [ style "background-color" "white"
-                , style "border" "2px solid #d3d6da"
-                , style "border-radius" "5%"
-                , style "display" "inline-flex"
-                , style "flex-direction" "column"
-                , style "font-family" "helvetica"
-                , style "height" "4em"
-                , style "justify-content" "center"
-                , style "margin" "0 0.25em 0.25em 0"
-                , style "text-align" "center"
-                , style "vertical-align" "top"
-                , style "width" "4em"
-                ]
+            div [ class "board-cell" ]
                 [ text (String.fromChar char |> String.toUpper) ]
 
         Absent char ->
             div
-                [ style "background-color" "#787c7e"
-                , style "border" "2px solid #d3d6da"
-                , style "border-radius" "5%"
-                , style "color" "white"
-                , style "display" "inline-flex"
-                , style "flex-direction" "column"
-                , style "font-family" "helvetica"
-                , style "height" "4em"
-                , style "justify-content" "center"
-                , style "margin" "0 0.25em 0.25em 0"
-                , style "text-align" "center"
-                , style "vertical-align" "top"
-                , style "width" "4em"
-                ]
+                [ class "board-cell absent" ]
                 [ text (String.fromChar char |> String.toUpper) ]
 
         Present char ->
             div
-                [ style "background-color" "#c9b458"
-                , style "border" "2px solid #d3d6da"
-                , style "border-radius" "5%"
-                , style "color" "white"
-                , style "display" "inline-flex"
-                , style "flex-direction" "column"
-                , style "font-family" "helvetica"
-                , style "height" "4em"
-                , style "justify-content" "center"
-                , style "margin" "0 0.25em 0.25em 0"
-                , style "text-align" "center"
-                , style "vertical-align" "top"
-                , style "width" "4em"
-                ]
+                [ class "board-cell present" ]
                 [ text (String.fromChar char |> String.toUpper) ]
 
         Correct char ->
             div
-                [ style "background-color" "#6aaa64"
-                , style "border" "2px solid #d3d6da"
-                , style "border-radius" "5%"
-                , style "color" "white"
-                , style "display" "inline-flex"
-                , style "flex-direction" "column"
-                , style "font-family" "helvetica"
-                , style "height" "4em"
-                , style "justify-content" "center"
-                , style "margin" "0 0.25em 0.25em 0"
-                , style "text-align" "center"
-                , style "vertical-align" "top"
-                , style "width" "4em"
-                ]
+                [ class "board-cell correct" ]
                 [ text (String.fromChar char |> String.toUpper) ]
 
 
@@ -527,6 +476,11 @@ fromRow guess =
 display : Board -> List (Html Msg)
 display board =
     List.map fromRow (Array.toList board)
+
+
+
+-- TODO: Probably better just to pass the
+-- number of guesses and the game state here
 
 
 showGameResult : Model -> String
@@ -554,38 +508,14 @@ toKeyCap keyPressed =
     case keyPressed of
         Unclicked letter ->
             div
-                [ style "background-color" "white"
-                , style "color" "black"
-                , style "border" "2px solid #d3d6da"
-                , style "border-radius" "5%"
-                , style "display" "inline-flex"
-                , style "flex-direction" "column"
-                , style "font-family" "helvetica"
-                , style "height" "3em"
-                , style "justify-content" "center"
-                , style "margin" "0 0.1em 0.1em 0"
-                , style "text-align" "center"
-                , style "vertical-align" "top"
-                , style "width" "2em"
+                [ class "keycap"
                 , onClick (toKey letter)
                 ]
                 [ text <| String.toUpper letter ]
 
         Clicked letter ->
             div
-                [ style "background-color" "#787c7e"
-                , style "color" "white"
-                , style "border" "2px solid #d3d6da"
-                , style "border-radius" "5%"
-                , style "display" "inline-flex"
-                , style "flex-direction" "column"
-                , style "font-family" "helvetica"
-                , style "height" "3em"
-                , style "justify-content" "center"
-                , style "margin" "0 0.1em 0.1em 0"
-                , style "text-align" "center"
-                , style "vertical-align" "top"
-                , style "width" "2em"
+                [ class "keycap clicked"
                 , onClick (toKey letter)
                 ]
                 [ text <| String.toUpper letter ]
@@ -601,33 +531,19 @@ renderKeyboard keyboard =
 view : Model -> Html Msg
 view model =
     div []
-        [ h1
-            [ style "text-align" "center"
-            , style "font-family" "helvetica"
-            ]
+        [ h1 []
             [ text "WORSLE" ]
         , h2
-            [ style "text-align" "center"
-            , style "font-family" "helvetica"
-            , style "font-size" "1em"
-            ]
+            []
             [ text "Wordle, just... slightly worse" ]
         , div
-            [ style "margin" "0 auto"
-            , style "width" "22.5em"
-            ]
+            [ class "game-board" ]
             (display model.board)
         , p
-            [ style "text-align" "center"
-            , style "font-family" "helvetica"
-            ]
+            []
             [ text (showGameResult model) ]
         , div
-            [ style "text-align" "center"
-            , style "font-family" "helvetica"
-            , style "width" "24em"
-            , style "margin" "0 auto"
-            ]
+            [ class "keyboard" ]
             (renderKeyboard model.keyboard)
         ]
 
