@@ -215,11 +215,14 @@ setLetterAt ( rowIndex, columnIndex ) board character =
             Array.empty
 
 
+
+-- TODO: Ensure we don't fall off either end of the row
+-- (it doesn't break the experience, but is confusing
+-- since the cursor is effectively "off the screen")
+
+
 advanceColumnBy : Int -> Cursor -> Cursor
 advanceColumnBy value ( row, column ) =
-    -- TODO: Ensure we don't fall off either end of the row
-    -- (it doesn't break the experience, but is confusing
-    -- since the cursor is effectively "off the screen")
     ( row, column + value )
 
 
@@ -317,8 +320,6 @@ updateRow row word =
 
 
 
--- TODO: Might be worth writing a row accessor,
--- given we use this pattern in a couple places
 -- TODO: Prevent non-words from being submitted,
 -- as well as prevent incomplete submissions
 
@@ -446,7 +447,6 @@ update msg model =
 toSquare : Cell -> Html Msg
 toSquare cell =
     case cell of
-        -- TODO: Consider Elm UI
         Uncommitted char ->
             div [ class "board-cell" ]
                 [ text (String.fromChar char |> String.toUpper) ]
@@ -478,6 +478,11 @@ display board =
     List.map fromRow (Array.toList board)
 
 
+
+-- TODO: Consider refactoring to an animation of
+-- some kind, rather than overlaying "loud" text
+
+
 showGameResult : Int -> GameState -> String
 showGameResult numberOfGuesses gameState =
     case gameState of
@@ -489,6 +494,10 @@ showGameResult numberOfGuesses gameState =
 
         Lost ->
             "You lost!"
+
+
+
+-- TODO: Conditionally include onclick depending on GameState
 
 
 toKeyCap : Key -> Html Msg
