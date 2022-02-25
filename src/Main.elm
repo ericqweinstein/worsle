@@ -73,6 +73,16 @@ type alias Model =
     }
 
 
+rowLength : Int
+rowLength =
+    5
+
+
+boardLength : Int
+boardLength =
+    6
+
+
 createBoard : Board
 createBoard =
     let
@@ -80,9 +90,9 @@ createBoard =
             Uncommitted ' '
 
         blankRow =
-            Array.fromList <| List.repeat 5 blankCell
+            Array.fromList <| List.repeat rowLength blankCell
     in
-    Array.fromList <| List.repeat 6 blankRow
+    Array.fromList <| List.repeat boardLength blankRow
 
 
 createKeyboard : Keyboard
@@ -215,25 +225,30 @@ setLetterAt ( rowIndex, columnIndex ) board character =
             Array.empty
 
 
-
--- TODO: Ensure we don't fall off either end of the row
--- (it doesn't break the experience, but is confusing
--- since the cursor is effectively "off the screen")
-
-
 advanceColumnBy : Int -> Cursor -> Cursor
 advanceColumnBy value ( row, column ) =
-    ( row, column + value )
+    let
+        newPosition =
+            column + value
+    in
+    if newPosition < 0 then
+        ( row, 0 )
+
+    else if newPosition > rowLength then
+        ( row, rowLength )
+
+    else
+        ( row, column + value )
 
 
-advanceRow : Model -> Cursor
-advanceRow model =
+advanceRow : Cursor -> Board -> Cursor
+advanceRow cursor board =
     let
         ( row, _ ) =
-            model.cursor
+            cursor
 
         boardSize =
-            Array.length model.board
+            Array.length board
     in
     if row < boardSize then
         ( row + 1, 0 )
@@ -258,7 +273,7 @@ updateGameState model =
             model.word
 
         hasGuessesLeft =
-            model.guessCount < 5
+            model.guessCount < (boardLength - 1)
 
         correctGuess =
             case row of
@@ -415,7 +430,7 @@ update msg model =
         ControlKey "Enter" ->
             ( { model
                 | board = commitGuess model
-                , cursor = advanceRow model
+                , cursor = advanceRow model.cursor model.board
                 , keyboard = updateKeyboard model
                 , guessCount = model.guessCount + 1
                 , gameState = updateGameState model
@@ -446,6 +461,8 @@ update msg model =
 
 toSquare : Cell -> Html Msg
 toSquare cell =
+    -- TODO: Extract the `div` logic into its own function,
+    -- parameterized by the class we wish to apply
     case cell of
         Uncommitted char ->
             div [ class "board-cell" ]
