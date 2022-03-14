@@ -490,27 +490,25 @@ fromRow guess =
         (List.map toSquare (Array.toList guess))
 
 
-display : Board -> List (Html Msg)
-display board =
-    List.map fromRow (Array.toList board)
-
-
-
--- TODO: Consider refactoring to an animation of
--- some kind, rather than overlaying "loud" text
-
-
-showGameResult : Int -> GameState -> String
-showGameResult numberOfGuesses gameState =
-    case gameState of
-        Playing ->
-            ""
-
+display : Model -> Html Msg
+display model =
+    let
+        board =
+            Array.toList model.board
+    in
+    case model.gameState of
+        -- TODO: See comment for `toSquare`
         Won ->
-            "Got it in " ++ String.fromInt numberOfGuesses ++ "!"
+            div [ class "victory" ]
+                (List.map fromRow board)
 
         Lost ->
-            "You lost!"
+            div [ class "defeat" ]
+                (List.map fromRow board)
+
+        Playing ->
+            div []
+                (List.map fromRow board)
 
 
 
@@ -552,10 +550,7 @@ view model =
             [ text "Wordle, just... slightly worse" ]
         , div
             [ class "game-board" ]
-            (display model.board)
-        , p
-            [ class "modal" ]
-            [ text (showGameResult model.guessCount model.gameState) ]
+            [ display model ]
         , div
             [ class "keyboard" ]
             (renderKeyboard model.keyboard)
